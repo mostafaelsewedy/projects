@@ -1,0 +1,114 @@
+Mostafa Ashraf 55-5414 T-21
+
+code for milestone 1:
+
+import numpy as np
+import matplotlib.pyplot as plt
+import sounddevice as sd
+
+
+
+t= np.linspace(0,3,12*1024)
+
+freq1 = [130.81,146.83,164.81,174.61,196,220,246.93]
+freq2 = [261.63,293.66,329.63,349.23,392,440,493.88]
+duration_between_notes = [0.15,0.25,0.15,0.2,0.1,0.3]
+end_point_of_notes =     [0.4,0.9,1.5,1.8,2.5,3]
+
+i= 0
+count_between_nodes=0
+count_end_points=0
+full_signal =0
+
+
+
+while i<3 :
+   x1=np.where(np.logical_and(t>=i,t<=end_point_of_notes[count_end_points]),np.sin(2*np.pi*freq1[count_end_points]*t),0)
+   x2=np.where(np.logical_and(t>=i,t<=end_point_of_notes[count_end_points]),np.sin(2*np.pi*freq2[count_end_points]*t),0)
+
+   full_signal = full_signal+x1+x2
+   
+   i = (end_point_of_notes[count_end_points]+duration_between_notes[count_between_nodes])
+   count_between_nodes=count_between_nodes+1
+   count_end_points=count_end_points+1
+
+
+
+plt.subplot(3,2,1)
+plt.plot(t,full_signal)
+sd.play(full_signal,3*1024)
+
+code for milestone 2:
+
+from  scipy.fftpack import fft
+import numpy as np
+import matplotlib.pyplot as plt
+import sounddevice as sd
+
+N = 3*1024
+f = np.linspace(0,512,int(N/2))
+
+t= np.linspace(0,3,12*1024)
+f_n = np.random.randint(0,512,2) 
+noise = np.sin(2*np.pi*f_n[0]*t) + np.sin(2*np.pi*f_n[1]*t)
+
+freq1 = [130.81,146.83,164.81,174.61,196,220,246.93]
+freq2 = [261.63,293.66,329.63,349.23,392,440,493.88]
+duration_between_notes = [0.15,0.25,0.15,0.2,0.1,0.3]
+end_point_of_notes =     [0.4,0.9,1.5,1.8,2.5,3]
+
+i= 0
+count_between_nodes=0
+count_end_points=0
+full_signal =0
+
+
+
+while i<3 :
+   x1=np.where(np.logical_and(t>=i,t<=end_point_of_notes[count_end_points]),np.sin(2*np.pi*freq1[count_end_points]*t),0)
+   x2=np.where(np.logical_and(t>=i,t<=end_point_of_notes[count_end_points]),np.sin(2*np.pi*freq2[count_end_points]*t),0)
+
+   full_signal = full_signal+x1+x2
+   
+   i = (end_point_of_notes[count_end_points]+duration_between_notes[count_between_nodes])
+   count_between_nodes=count_between_nodes+1
+   count_end_points=count_end_points+1
+   
+freq = fft(full_signal)   
+freq = 2/N * np.abs(freq[0:np.int(N/2)])
+
+noisy_signal = full_signal + noise
+noise_freq= fft(noisy_signal)
+noise_freq = 2/N * np.abs(noise_freq[0:int(N/2)])
+
+noise_found = np.arange(0,2)
+count=0
+tempcount = 0 ;
+maxAmplitude = np.ceil(max(freq))
+while count < f.size :
+    if noise_freq[count] >maxAmplitude :
+        noise_found[tempcount]=f[count]
+        tempcount +=1
+    count +=1
+     
+noise_found[0] = np.round(noise_found[0])
+noise_found[1] = np.round(noise_found[1])
+noisy_filtered  = noisy_signal - ( np.sin(2*noise_found[0]*np.pi*t)+np.sin(2*noise_found[1]*np.pi*t))
+
+noise_filtered_freq = fft(noisy_filtered)
+noise_filtered_freq = 2/N * np.abs(noise_filtered_freq[0:np.int(N/2)])
+
+plt.subplot(3,2,1)
+plt.plot(t,full_signal)
+plt.subplot(3,2,2)
+plt.plot(f,freq)
+plt.subplot(3,2,3)
+plt.plot(t,noisy_signal)
+plt.subplot(3,2,4)
+plt.plot(f,noise_freq)
+plt.subplot(3,2,5)
+plt.plot(t,noisy_filtered)
+plt.subplot(3,2,6)
+plt.plot(f,noise_filtered_freq)
+
+sd.play(noisy_filtered,3*1024)
